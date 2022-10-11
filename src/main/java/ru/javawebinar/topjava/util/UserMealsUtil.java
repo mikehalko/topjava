@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -21,45 +22,49 @@ public class UserMealsUtil {
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
         );
 
-        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        mealsTo.forEach(System.out::println);
+        List<UserMealWithExcess> mealsCyclesOption =
+                filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(13, 1), 2000);
+        System.out.println("[cycles-option]:");
+        mealsCyclesOption.forEach(meal -> System.out.println("\t"+ meal));
 
-//        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
+        System.out.println("-------------");
+
+        List<UserMealWithExcess> mealsStreamOption =
+                filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(13, 1), 2000);
+        System.out.println("[stream-option]:");
+        mealsStreamOption.forEach(meal -> System.out.println("\t"+ meal));
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-
+        // 0.a Результирующий список
+        // 0.b карта pool (содержит сгруппированные meals по дате), чтобы менять excess всех, кто в одном pool
         List<UserMealWithExcess> resultList = new ArrayList<>();
-        Map<LocalDate, Pool> poolByDateMap = new HashMap<>();
+        Map<LocalDate, Pool> poolMap = new HashMap<>();
 
-        // O(N)
+        // 1. Проход по списку, 2. Суммирование каллорий в pool, 3. Фильтрация, 4. add в результирующий список
+        // 1.
         meals.forEach(userMeal -> { // O(N)
 
             LocalDate date = userMeal.getDateTime().toLocalDate();
-            LocalTime time = userMeal.getDateTime().toLocalTime();
             int   calories = userMeal.getCalories();
 
-            Pool pool = poolByDateMap.get(date); // O(1)
-            if (pool == null) {
-                Pool newPool = Pool.of(0);
-                poolByDateMap.put(date, newPool);
-                pool = newPool;
-            }
+            Pool pool = safeGetPoolByDate(poolMap, date);
+            pool.addCalories(calories); // 2.
 
-            pool.addCalories(calories);
-
-            boolean timeFilter =  time.isAfter(startTime) && time.isBefore(endTime);
-            if (timeFilter) {
-                addMealWithExcess(userMeal, pool, resultList);
+            Filter filter = Filter.of(startTime, endTime);
+            if (filter.between(userMeal)) { // 3.
+                UserMealWithExcess userMealWithExcess = UserMealWithExcess.of(userMeal, false);
+                pool.getMeals().add(userMealWithExcess); // в pool, чтобы в последствии менять поле excess
+                resultList.add(userMealWithExcess); // 4.
             }
         });
 
 
-        // O(N)
-        poolByDateMap.forEach((date, pool) -> { // O(N) - если N записей и каждая на разный день
+        // Проход, свитч поля excess по условию у всех, кто в одном pool (по дню)
+        poolMap.forEach((date, pool) -> { // O(N) - если N записей и каждая на разный день
             boolean excess = pool.getCalories() > caloriesPerDay;
             if (excess) {
-                pool.everythingExcessIsTrue(); // O(N) - если в одном дне будет N записей, тогда и внешний цикл O(1)
+                pool.allExcessTurnTrue(); // O(N) - если в одном дне будет N записей, тогда и внешний цикл O(1)
             }
         });
 
@@ -67,19 +72,47 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO Implement by streams
-        return null;
+
+        Filter filter = Filter.of(startTime, endTime);
+
+        // 1 Разибение по группам (дни)
+        Map <LocalDate, List<UserMeal>> mealsGroups = meals.stream()
+                        .sorted(Comparator.comparing(UserMeal::getDateTime))
+                        .collect(Collectors.groupingBy(UserMeal::getDate));
+
+        // 2. Выявление условия (calories > caloriesPerDay) и конвертация в UserMealWithExcess
+        List<UserMealWithExcess> mealExcList = new ArrayList<>();
+        mealsGroups.forEach( (date, mealList) -> {
+            boolean mark = mealsCaloriesGreaterThanN(mealList, caloriesPerDay);
+            mealList.forEach( meal -> mealExcList.add(UserMealWithExcess.of(meal, mark)) );
+        });
+
+        // 3. Фильтрация по заданному фильтру
+        List<UserMealWithExcess> filteredMeals = mealExcList.stream()
+                .filter(filter::between)
+                .sorted(Comparator.comparing(UserMealWithExcess::getDateTime))
+                .collect(Collectors.toList());
+
+        return filteredMeals;
     }
 
-    public static void addMealWithExcess(UserMeal userMeal, Pool pool, List<UserMealWithExcess> list) {
-        UserMealWithExcess userMealWithExcess = new UserMealWithExcess(
-                userMeal.getDateTime(),
-                userMeal.getDescription(),
-                userMeal.getCalories(),
-                false
-        );
 
-        pool.getMeals().add(userMealWithExcess);
-        list.add(userMealWithExcess);
+    // получить pool по дате из карты, если null, вернуть новый, добавив в карту
+    private static Pool safeGetPoolByDate(Map<LocalDate, Pool> poolMap, LocalDate date) {
+        Pool pool = poolMap.get(date); // O(1)
+        if (pool == null) {
+            Pool newPool = Pool.of(0);
+            poolMap.put(date, newPool);
+            pool = newPool;
+        }
+
+        return pool;
+    }
+
+
+    // проверка условия, если сумма всех полей calories из списка meals > N, вернет true
+    private static boolean mealsCaloriesGreaterThanN(List<UserMeal> meals, final Integer N) {
+        int sum = meals.stream().mapToInt(UserMeal::getCalories).sum();
+        return sum > N;
     }
 }

@@ -42,7 +42,7 @@ public class Pool {
         this.calories = this.calories + calories;
     }
 
-    public void everythingExcessIsTrue() {
+    public void allExcessTurnTrue() {
         meals.forEach(meal -> meal.setExcess(true));
     }
 
