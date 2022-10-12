@@ -1,7 +1,7 @@
 package ru.javawebinar.topjava.util;
 
-import ru.javawebinar.topjava.model.UserMeal;
-import ru.javawebinar.topjava.model.UserMealWithExcess;
+import ru.javawebinar.topjava.model.Meal;
+import ru.javawebinar.topjava.model.MealExcess;
 
 import java.time.LocalTime;
 
@@ -24,12 +24,12 @@ public class Filter {
     }
 
 
-    public boolean between(UserMeal meal) {
+    public boolean between(Meal meal) {
         LocalTime current = meal.getDateTime().toLocalTime();
         return current.compareTo(timeFrom) >= 0 && current.compareTo(timeTo) < 0;
     }
 
-    public boolean between(UserMealWithExcess mealExcess) {
+    public boolean between(MealExcess mealExcess) {
         LocalTime current = mealExcess.getDateTime().toLocalTime();
         return current.compareTo(timeFrom) >= 0 && current.compareTo(timeTo) < 0;
     }

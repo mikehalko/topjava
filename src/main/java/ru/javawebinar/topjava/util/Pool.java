@@ -1,24 +1,24 @@
 package ru.javawebinar.topjava.util;
 
-import ru.javawebinar.topjava.model.UserMealWithExcess;
+import ru.javawebinar.topjava.model.MealExcess;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class Pool {
     private int calories;
-    private final List<UserMealWithExcess> meals;
+    private final List<MealExcess> meals;
 
-    public Pool(int calories, List<UserMealWithExcess> meals) {
+    public Pool(int calories, List<MealExcess> meals) {
         this.calories = calories;
         this.meals = meals;
     }
 
-    public static Pool of(int calories, List<UserMealWithExcess> meals) {
+    public static Pool of(int calories, List<MealExcess> meals) {
         return new Pool(calories, meals);
     }
 
-    public static Pool of(int calories, UserMealWithExcess meal) {
+    public static Pool of(int calories, MealExcess meal) {
 
         Pool pool = new Pool(calories, new LinkedList<>());
         pool.meals.add(meal);
@@ -34,7 +34,7 @@ public class Pool {
         return calories;
     }
 
-    public List<UserMealWithExcess> getMeals() {
+    public List<MealExcess> getMeals() {
         return meals;
     }
 
