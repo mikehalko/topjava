@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 public class MealsUtil {
     public static void main(String[] args) {
@@ -33,9 +36,23 @@ public class MealsUtil {
                 filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(13, 1), 2000);
         System.out.println("[stream-option]:");
         mealsStreamOption.forEach(meal -> System.out.println("\t"+ meal));
+
+
+        System.out.println("-------------");
+        List<MealExcess> mealsStreamAggregate =
+                filteredByStreamsAggregate(meals, LocalTime.of(7, 0), LocalTime.of(13, 1), 2000);
+        System.out.println("[stream-aggregate]:");
+        mealsStreamAggregate.forEach(meal -> System.out.println("\t"+ meal));
+
+
+        System.out.println("-------------");
+        List<MealExcess> mealsStreamInOneReturn =
+                filteredByStreamsInOneReturn(meals, LocalTime.of(7, 0), LocalTime.of(13, 1), 2000);
+        System.out.println("[stream-in_one_return]:");
+        mealsStreamInOneReturn.forEach(meal -> System.out.println("\t"+ meal));
     }
 
-    public static List<MealExcess> filteredByCycles(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+    public static List<MealExcess> filteredByCyclesMy(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // 0.a Результирующий список
         // 0.b карта pool (содержит сгруппированные meals по дате), чтобы менять excess всех, кто в одном pool
         List<MealExcess> resultList = new ArrayList<>();
@@ -71,6 +88,24 @@ public class MealsUtil {
         return resultList;
     }
 
+    public static List<MealExcess> filteredByCycles(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+        Filter filter = Filter.of(startTime, endTime);
+
+        Map<LocalDate, Integer> sumByDay = new HashMap<>();
+        for (Meal meal : meals) {
+            sumByDay.put(meal.getDate(), sumByDay.getOrDefault(meal.getDate(), 0) + meal.getCalories());
+        }
+
+        List<MealExcess> mealsExcess = new ArrayList<>();
+        for (Meal meal : meals) {
+            if (filter.between(meal)) {
+                mealsExcess.add(MealExcess.of(meal, sumByDay.get(meal.getDate()) > caloriesPerDay));
+            }
+        }
+
+        return mealsExcess;
+    }
+
     public static List<MealExcess> filteredByStreams(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
 
         Filter filter = Filter.of(startTime, endTime);
@@ -96,6 +131,60 @@ public class MealsUtil {
         return filteredMeals;
     }
 
+    public static List<MealExcess> filteredByStreamsAggregate(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+
+        Filter filter = Filter.of(startTime, endTime);
+
+        final class Aggregate {
+            private final List<Meal> dailyMeals = new ArrayList<>();
+            private int dailySumOfCalories;
+
+            private void accumulate(Meal meal) {
+                dailySumOfCalories += meal.getCalories();
+                if (filter.between(meal)) {
+                    dailyMeals.add(meal);
+                }
+            }
+
+            private Aggregate combine(Aggregate that) {
+                this.dailySumOfCalories += that.dailySumOfCalories;
+                this.dailyMeals.addAll(that.dailyMeals);
+
+                return this;
+            }
+
+            private Stream<MealExcess> finisher() {
+                final boolean exceed = dailySumOfCalories > caloriesPerDay;
+                return dailyMeals.stream().map(meal -> MealExcess.of(meal, exceed));
+            }
+        }
+
+        Collection<Stream<MealExcess>> values = meals.stream()
+                .parallel()
+                .collect(Collectors.groupingBy(Meal::getDate,
+                         Collector.of(Aggregate::new, Aggregate::accumulate, Aggregate::combine, Aggregate::finisher)))
+                .values();
+
+
+        return values.stream().flatMap(y -> y).collect(Collectors.toList());
+    }
+
+    public static List<MealExcess> filteredByStreamsInOneReturn(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+        return meals.stream()
+                .collect(Collectors.groupingBy(Meal::getDate))
+                .values()
+                .stream()
+                .flatMap(dayMeals -> {
+                    boolean exceed = dayMeals.stream()
+                            .mapToInt(Meal::getCalories)
+                            .sum() > caloriesPerDay;
+
+                    return dayMeals.stream()
+                            .filter(meal -> TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime))
+                            .map(meal -> MealExcess.of(meal, exceed));
+                })
+                .collect(Collectors.toList());
+    }
 
     // получить pool по дате из карты, если null, вернуть новый, добавив в карту
     private static Pool safeGetPoolByDate(Map<LocalDate, Pool> poolMap, LocalDate date) {
