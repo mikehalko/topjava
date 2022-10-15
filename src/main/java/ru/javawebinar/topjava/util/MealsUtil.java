@@ -1,8 +1,10 @@
 package ru.javawebinar.topjava.util;
 
+import org.slf4j.Logger;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -12,7 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class MealsUtil {
+    private static final Logger log = getLogger(MealsUtil.class);
+
     public static void main(String[] args) {
         List<Meal> meals = Arrays.asList(
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
@@ -35,13 +41,29 @@ public class MealsUtil {
 //                      Collectors.toMap(Meal::getDate, Meal::getCalories, Integer::sum)
                 );
 
-        return meals.stream()
+        List<MealTo> result = meals.stream()
                 .filter(meal -> TimeUtil.isBetweenHalfOpen(meal.getTime(), startTime, endTime))
                 .map(meal -> createTo(meal, caloriesSumByDate.get(meal.getDate()) > caloriesPerDay))
                 .collect(Collectors.toList());
+
+        log.debug("[util] stream="+ result);
+
+        return result;
     }
 
     private static MealTo createTo(Meal meal, boolean excess) {
-        return new MealTo(meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
+        return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
+    }
+
+    public static Meal createByRequest(HttpServletRequest request) {
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        String dateLine = parameterMap.get("date")[0];
+        String description = parameterMap.get("description")[0];
+        String caloriesLine = parameterMap.get("calories")[0];
+        int calories = Integer.parseInt(caloriesLine);
+
+        LocalDateTime date = LocalDateTime.parse(dateLine);
+
+        return new Meal(date, description, calories);
     }
 }

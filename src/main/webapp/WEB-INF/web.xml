@@ -16,4 +16,56 @@
         <url-pattern>/users</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>mealServlet</servlet-name>
+        <servlet-class>ru.javawebinar.topjava.web.meals.MealsIndexServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mealServlet</servlet-name>
+        <url-pattern>/meals</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>mealDeleteServlet</servlet-name>
+        <servlet-class>ru.javawebinar.topjava.web.meals.MealsDeleteServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mealDeleteServlet</servlet-name>
+        <url-pattern>/meals/delete</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>mealsShowServlet</servlet-name>
+        <servlet-class>ru.javawebinar.topjava.web.meals.MealsShowServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mealsShowServlet</servlet-name>
+        <url-pattern>/meals/show</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>mealsCreateServlet</servlet-name>
+        <servlet-class>ru.javawebinar.topjava.web.meals.MealsCreateServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mealsCreateServlet</servlet-name>
+        <url-pattern>/meals/new</url-pattern>
+    </servlet-mapping>
+
+
+
+    <servlet>
+        <servlet-name>mealsEditServlet</servlet-name>
+        <servlet-class>ru.javawebinar.topjava.web.meals.MealsEditServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mealsEditServlet</servlet-name>
+        <url-pattern>/meals/edit</url-pattern>
+    </servlet-mapping>
+
 </web-app>
