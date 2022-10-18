@@ -17,13 +17,9 @@
         MealTo meal = (MealTo) request.getAttribute("meal");
 
         if (meal != null) {
-            String  trueStr = "ПРЕВЫШЕНО!";
-            String falseStr = "всё в порядке :)";
-
             String date = meal.getDateTime().toString();
             String desc = meal.getDescription();
             String cal  = String.valueOf(meal.getCalories());
-            String excess = meal.isExcess() ? trueStr : falseStr;
             String id = String.valueOf(meal.getId());
 
             String input = "<div>\n" +

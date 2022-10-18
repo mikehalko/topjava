@@ -27,12 +27,12 @@
             String id = String.valueOf(meal.getId());
 
             String line =
-                    "<p>Дата: "+ date +"\n" +
-                    "</p><p>Описание: "+ desc +"\n" +
-                    "</p><li>Кол-во калорий: "+ cal +"\n" +
-                    "</li><li>Превышение калорий: "+ excess +"\n" +
-                    "</li><p><a href=\"meals/edit/"+ id +"\">edit</a></p>" +
-                    "<p><a href=\"meals/delete?id="+ id +"\">delete</a></p>";
+                    "<p>Дата: "+ date +
+                    "\n</p><p>Описание: "+ desc +
+                    "\n</p><li>Кол-во калорий: "+ cal +
+                    "\n</li><li>Превышение калорий: "+ excess +
+                    "\n<div></li><a href=\"meals/edit?id="+ id +"\">edit</a><br>" +
+                    "<hr><a href=\"meals/delete?id="+ id +"\">delete</a></div>";
 
             out.print(line);
         } else {

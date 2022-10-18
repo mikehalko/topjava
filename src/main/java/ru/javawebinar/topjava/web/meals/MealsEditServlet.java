@@ -50,9 +50,8 @@ public class MealsEditServlet extends HttpServlet {
         Meal meal = null;
         try {
             meal = MealsUtil.createByRequest(request);
+            log.debug("edit meal=" + meal);
             service.edit(Integer.parseInt(id), meal);
-
-            log.debug("meal=" + meal);
         } catch (Exception e) {
             log.error("EXCEPTION! meal=" + meal);
             log.error("EXCEPTION=" + e.getMessage());

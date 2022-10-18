@@ -57,13 +57,17 @@ public class MealsUtil {
 
     public static Meal createByRequest(HttpServletRequest request) {
         Map<String, String[]> parameterMap = request.getParameterMap();
-        String dateLine = parameterMap.get("date")[0];
+        log.debug("parameterMap="+ parameterMap);
+        String date = parameterMap.get("date")[0];
         String description = parameterMap.get("description")[0];
-        String caloriesLine = parameterMap.get("calories")[0];
-        int calories = Integer.parseInt(caloriesLine);
+        String calories = parameterMap.get("calories")[0];
+        int id = 0;
+        if(parameterMap.containsKey("id")) {
+            id = Integer.parseInt(parameterMap.get("id")[0]);
+        }
 
-        LocalDateTime date = LocalDateTime.parse(dateLine);
+        log.debug(String.format("id=%d, date=%s, desc=%s, cal=%s", id, date, description, calories));
 
-        return new Meal(date, description, calories);
+        return new Meal(id, LocalDateTime.parse(date), description, Integer.parseInt(calories));
     }
 }
