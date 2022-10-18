@@ -43,12 +43,6 @@ public class MealTo {
 
     @Override
     public String toString() {
-        return "MealTo{" +
-                "id=" + id +
-                ", dateTime=" + dateTime +
-                ", description='" + description + '\'' +
-                ", calories=" + calories +
-                ", excess=" + excess +
-                '}';
+        return "[ID_"+id+"]"+"[E_"+excess+"]"+"[D_"+description+"]"+"[C_"+calories+"]"+"[DT_"+dateTime+"]";
     }
 }

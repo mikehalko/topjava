@@ -8,7 +8,6 @@ import ru.javawebinar.topjava.repository.UserRepository;
 import ru.javawebinar.topjava.util.UsersUtil;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +25,8 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public boolean delete(int id) {
-        log.info("delete {}", id);
-        return true;
+        log.info("delete id={}", id);
+        return repository.remove(id) != null;
     }
 
 
@@ -55,7 +54,13 @@ public class InMemoryUserRepository implements UserRepository {
     @Override
     public List<User> getAll() {
         log.info("getAll");
-        return UsersUtil.getSorted(new ArrayList<>(repository.values()), Comparator.comparing(User::getName));
+        return UsersUtil.getSorted(new ArrayList<>(repository.values()), (user1, user2) -> {
+            if (user1.getName().equals(user2.getName())) {
+                return user1.getEmail().compareTo(user2.getEmail());
+            }
+
+            return user1.getName().compareTo(user2.getName());
+        });
     }
 
     @Override

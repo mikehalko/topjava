@@ -59,11 +59,6 @@ public class Meal extends AbstractBaseEntity {
 
     @Override
     public String toString() {
-        return "Meal{" +
-                "id=" + id +
-                ", dateTime=" + dateTime +
-                ", description='" + description + '\'' +
-                ", calories=" + calories +
-                '}';
+        return "[ID_"+id+"]"+"[U_"+userId+"]"+"[D_"+description+"]"+"[C_"+calories+"]"+"[DT_"+dateTime+"]";
     }
 }
