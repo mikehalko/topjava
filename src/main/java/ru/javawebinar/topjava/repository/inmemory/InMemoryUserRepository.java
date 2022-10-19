@@ -8,10 +8,13 @@ import ru.javawebinar.topjava.repository.UserRepository;
 import ru.javawebinar.topjava.util.UsersUtil;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryUserRepository implements UserRepository {
@@ -32,17 +35,18 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        log.debug("save user={}", user);
+        log.debug("save/update user={}", user);
         if (user.isNew()) {
             user.setId(counter.incrementAndGet());
-            log.debug("user new id={}", user.getId());
+            log.debug("user is new, id={}", user.getId());
             repository.put(user.getId(), user);
-            log.debug("put");
+            log.info("save new user={}", user);
             return user;
         }
-        log.info("saved user={}", user);
 
-        return repository.computeIfPresent(user.getId(), (id, oldUser) -> user);
+        User updatedUser = repository.computeIfPresent(user.getId(), (id, oldUser) -> user);
+        log.info("updated user={}", user);
+        return updatedUser;
     }
 
     @Override
@@ -54,19 +58,22 @@ public class InMemoryUserRepository implements UserRepository {
     @Override
     public List<User> getAll() {
         log.info("getAll");
-        return UsersUtil.getSorted(new ArrayList<>(repository.values()), (user1, user2) -> {
-            if (user1.getName().equals(user2.getName())) {
-                return user1.getEmail().compareTo(user2.getEmail());
-            }
-
-            return user1.getName().compareTo(user2.getName());
-        });
+        return getSorted(new ArrayList<>(repository.values()),
+                Comparator.comparing(User::getName).thenComparing(User::getEmail));
     }
 
     @Override
     public User getByEmail(String email) {
         log.info("getByEmail email={}", email);
+        return getOneByFilter(new ArrayList<>(repository.values()),
+                user -> user.getEmail().equalsIgnoreCase(email));
+    }
 
-        return UsersUtil.getOneByFilter(new ArrayList<>(repository.values()), user -> user.getEmail().equals(email));
+    private static User getOneByFilter(List<User> userList, Predicate<User> filter) {
+        return userList.stream().filter(filter).findFirst().orElse(null);
+    }
+
+    private static List<User> getSorted(List<User> userList, Comparator<User> comparator) {
+        return userList.stream().sorted(comparator).collect(Collectors.toList());
     }
 }

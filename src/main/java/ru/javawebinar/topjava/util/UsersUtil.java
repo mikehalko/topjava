@@ -6,9 +6,7 @@ import ru.javawebinar.topjava.to.UserTo;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class UsersUtil {
@@ -23,14 +21,6 @@ public class UsersUtil {
         return users.stream()
                 .map(UsersUtil::createTo)
                 .collect(Collectors.toList());
-    }
-
-    public static User getOneByFilter(List<User> userList, Predicate<User> filter) {
-        return userList.stream().filter(filter).findFirst().orElse(null);
-    }
-
-    public static List<User> getSorted(List<User> userList, Comparator<User> comparator) {
-        return userList.stream().sorted(comparator).collect(Collectors.toList());
     }
 
     private static UserTo createTo(User user) {
