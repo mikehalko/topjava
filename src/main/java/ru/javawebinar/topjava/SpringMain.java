@@ -2,9 +2,9 @@ package ru.javawebinar.topjava;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
-import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.web.meal.MealRestController;
 import ru.javawebinar.topjava.web.user.AdminRestController;
 
@@ -25,7 +25,7 @@ public class SpringMain {
             System.out.println("[TEST SPRING MAIN]: get 1 ="+ mealRestController.get(1));
 
             LocalDateTime dateTime =  LocalDateTime.of(2000, 1, 1, 1, 1, 1);
-            MealTo meal = new MealTo(null, dateTime, "test", 2000, true);
+            Meal meal = new Meal(null, dateTime, "test", 2000);
             System.out.println("[TEST SPRING MAIN]: create ="+ mealRestController.create(meal));
             System.out.println("update id=8");
             mealRestController.update(meal, 8);

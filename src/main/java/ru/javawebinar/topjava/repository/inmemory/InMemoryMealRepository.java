@@ -58,7 +58,7 @@ public class InMemoryMealRepository implements MealRepository {
 
     @Override
     public Collection<Meal> getAll(int userId) {
-        return getAllById(new ArrayList<>(repository.values()), userId,
+        return filteredByUserId(new ArrayList<>(repository.values()), userId,
                 Comparator.comparing(Meal::getDateTime).reversed());
     }
 
@@ -75,7 +75,7 @@ public class InMemoryMealRepository implements MealRepository {
                 && repository.remove(id) != null;
     }
 
-    private static List<Meal> getAllById(List<Meal> mealList, int id, Comparator<Meal> comparator) {
+    private static List<Meal> filteredByUserId(List<Meal> mealList, int id, Comparator<Meal> comparator) {
         return mealList.stream()
                 .filter(meal -> meal.getUserId().equals(id))
                 .sorted(comparator)

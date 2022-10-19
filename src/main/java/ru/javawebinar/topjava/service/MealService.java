@@ -8,12 +8,8 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
-import ru.javawebinar.topjava.util.exception.NotFoundException;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 
@@ -21,31 +17,24 @@ import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 public class MealService {
     private static final Logger log = LoggerFactory.getLogger(MealService.class);
     private final MealRepository repository;
+
     @Autowired
     public MealService(MealRepository repository) {
         this.repository = repository;
     }
 
     public List<MealTo> getAll(int userId, int caloriesPerDay) {
-        Collection<Meal> mealsByUser = repository.getAll(userId);
-        if (mealsByUser == null) throw new NotFoundException("not accessible or not found with user id="+ userId);
-
-        return MealsUtil.getTos(new ArrayList<>(mealsByUser), caloriesPerDay);
+        return MealsUtil.getTos(repository.getAll(userId), caloriesPerDay);
     }
 
-    public MealTo get(int userId, int caloriesPerDay, int id) {
-        List<MealTo> mealsByUser = getAll(userId, caloriesPerDay);
-        MealTo meal = mealsByUser.get(id);
-        return mealsByUser.get(meal.getId());
+    public Meal get(int userId, int id) {
+        Meal meal = repository.get(userId, id);
+        return checkNotFoundWithId(meal, id);
     }
 
-    public MealTo create(int userId, int caloriesPerDay, Meal meal) {
-        log.debug("auth={}, cals={}, meal={}", userId, caloriesPerDay, meal);
-        Meal newMeal = repository.save(userId, meal);
-        if (newMeal == null) throw new NotFoundException("not accessible or not found with user id="+ userId);
-
-        List<MealTo> mealsByUser = getAll(userId, caloriesPerDay);
-        return mealsByUser.stream().filter(m -> Objects.equals(m.getId(), newMeal.getId())).findAny().orElse(null);
+    public Meal create(int userId, int caloriesPerDay, Meal meal) {
+        log.debug("try to create new meal auth={}, calories={}, meal={}", userId, caloriesPerDay, meal);
+        return repository.save(userId, meal);
     }
 
     public void delete(int userId, int id) {
