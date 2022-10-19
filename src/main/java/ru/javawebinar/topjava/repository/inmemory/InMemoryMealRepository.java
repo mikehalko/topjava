@@ -10,12 +10,10 @@ import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryMealRepository implements MealRepository {
@@ -33,44 +31,55 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public Meal save(int userId, Meal editMeal) {
-        if (editMeal.isNew()) {
-            editMeal.setId(counter.incrementAndGet());
-            editMeal.setUserId(userId);
-            log.debug("meal is new, set id={}, set user_id={}", editMeal.getId(), editMeal.getUserId());
-            repository.put(editMeal.getId(), editMeal);
-            return editMeal;
+    public Meal save(int userId, Meal meal) {
+        if (meal.isNew()) {
+            meal.setId(counter.incrementAndGet());
+            meal.setUserId(userId);
+            repository.put(meal.getId(), meal);
+            log.info("meal is new, set id={}, set user_id={}", meal.getId(), meal.getUserId());
+            return meal;
         }
         // handle case: update, but not present in storage
-        log.debug("meal already exist");
-
-        Meal oldMeal = repository.get(editMeal.getId());
-        if (!oldMeal.getUserId().equals(userId)) {
+        log.debug("trying update meal id={}", meal.getId());
+        Meal oldMeal = repository.get(meal.getId());
+        if (oldMeal == null) {
+            log.debug("meal is not exist id={}", meal.getId());
+            return null;
+        } else if (!oldMeal.getUserId().equals(userId)) {
             log.debug("not allowed to access old.userId={}, new.userId={}", oldMeal.getUserId(), userId);
             return null;
         }
 
-        editMeal.setUserId(oldMeal.getUserId());
-        repository.put(oldMeal.getId(), editMeal);
-        return editMeal;
+        meal.setUserId(oldMeal.getUserId());
+        repository.put(oldMeal.getId(), meal);
+        log.info("meal updated id={}", meal.getId());
+        return meal;
     }
 
     @Override
     public Collection<Meal> getAll(int userId) {
-        return MealsUtil.getAllById(new ArrayList<>(repository.values()), userId,
+        return getAllById(new ArrayList<>(repository.values()), userId,
                 Comparator.comparing(Meal::getDateTime).reversed());
     }
 
     @Override
-    public Meal get( int userId, int id) {
+    public Meal get(int userId, int id) {
         Meal meal = repository.get(id);
-        return meal.getUserId() == userId ? meal : null;
+        return (meal == null || meal.getUserId() == userId) ? meal : null;
     }
 
     @Override
-    public boolean delete( int userId, int id) {
+    public boolean delete(int userId, int id) {
         Meal meal = repository.get(id);
-        return meal.getUserId() == userId && repository.remove(id) != null;
+        return meal != null && meal.getUserId() == userId
+                && repository.remove(id) != null;
+    }
+
+    private static List<Meal> getAllById(List<Meal> mealList, int id, Comparator<Meal> comparator) {
+        return mealList.stream()
+                .filter(meal -> meal.getUserId().equals(id))
+                .sorted(comparator)
+                .collect(Collectors.toList());
     }
 }
 

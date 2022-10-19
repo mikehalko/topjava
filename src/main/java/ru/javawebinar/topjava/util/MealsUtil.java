@@ -45,13 +45,6 @@ public class MealsUtil {
                 .collect(Collectors.toList());
     }
 
-    public static List<Meal> getAllById(List<Meal> mealList, int id, Comparator<Meal> comparator) {
-        return mealList.stream()
-                .filter(meal -> meal.getUserId().equals(id))
-                .sorted(comparator)
-                .collect(Collectors.toList());
-    }
-
     private static MealTo createTo(Meal meal, boolean excess) {
         return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
     }

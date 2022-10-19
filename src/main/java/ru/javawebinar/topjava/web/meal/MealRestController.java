@@ -53,7 +53,7 @@ public class MealRestController {
 
     public void delete(int id) {
         log.info("delete id={}", id);
-        service.delete(authUserId(), authUserCaloriesPerDay(), id);
+        service.delete(authUserId(), id);
     }
 
     public void update(MealTo mealTo, int id) {

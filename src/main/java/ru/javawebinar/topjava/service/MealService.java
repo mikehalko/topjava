@@ -26,33 +26,33 @@ public class MealService {
         this.repository = repository;
     }
 
-    public List<MealTo> getAll(int authUserId, int caloriesPerDay) {
-        Collection<Meal> mealsByUser = repository.getAll(authUserId);
-        if (mealsByUser == null) throw new NotFoundException("not accessible or not found with user id="+ authUserId);
+    public List<MealTo> getAll(int userId, int caloriesPerDay) {
+        Collection<Meal> mealsByUser = repository.getAll(userId);
+        if (mealsByUser == null) throw new NotFoundException("not accessible or not found with user id="+ userId);
 
         return MealsUtil.getTos(new ArrayList<>(mealsByUser), caloriesPerDay);
     }
 
-    public MealTo get(int authUserId, int caloriesPerDay, int id) {
-        List<MealTo> mealsByUser = getAll(authUserId, caloriesPerDay);
+    public MealTo get(int userId, int caloriesPerDay, int id) {
+        List<MealTo> mealsByUser = getAll(userId, caloriesPerDay);
         MealTo meal = mealsByUser.get(id);
         return mealsByUser.get(meal.getId());
     }
 
-    public MealTo create(int authUserId, int caloriesPerDay, Meal meal) {
-        log.debug("auth={}, cals={}, meal={}", authUserId, caloriesPerDay, meal);
-        Meal newMeal = repository.save(authUserId, meal);
-        if (newMeal == null) throw new NotFoundException("not accessible or not found with user id="+ authUserId);
+    public MealTo create(int userId, int caloriesPerDay, Meal meal) {
+        log.debug("auth={}, cals={}, meal={}", userId, caloriesPerDay, meal);
+        Meal newMeal = repository.save(userId, meal);
+        if (newMeal == null) throw new NotFoundException("not accessible or not found with user id="+ userId);
 
-        List<MealTo> mealsByUser = getAll(authUserId, caloriesPerDay);
+        List<MealTo> mealsByUser = getAll(userId, caloriesPerDay);
         return mealsByUser.stream().filter(m -> Objects.equals(m.getId(), newMeal.getId())).findAny().orElse(null);
     }
 
-    public void delete(int authUserId, int id) {
-        checkNotFoundWithId(repository.delete(authUserId, id), id);
+    public void delete(int userId, int id) {
+        checkNotFoundWithId(repository.delete(userId, id), id);
     }
 
-    public void update(int authUserId, Meal meal) {
-        checkNotFoundWithId(repository.save(authUserId, meal), meal.getId());
+    public void update(int userId, Meal meal) {
+        checkNotFoundWithId(repository.save(userId, meal), meal.getId());
     }
 }
