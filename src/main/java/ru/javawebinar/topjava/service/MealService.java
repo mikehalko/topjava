@@ -27,8 +27,7 @@ public class MealService {
     }
 
     public List<MealTo> getAll(int authUserId, int caloriesPerDay) {
-        Collection<Meal> mealsByUser = repository.getAllByUserId(authUserId);
-
+        Collection<Meal> mealsByUser = repository.getAll(authUserId);
         if (mealsByUser == null) throw new NotFoundException("not accessible or not found with user id="+ authUserId);
 
         return MealsUtil.getTos(new ArrayList<>(mealsByUser), caloriesPerDay);
@@ -37,23 +36,19 @@ public class MealService {
     public MealTo get(int authUserId, int caloriesPerDay, int id) {
         List<MealTo> mealsByUser = getAll(authUserId, caloriesPerDay);
         MealTo meal = mealsByUser.get(id);
-
         return mealsByUser.get(meal.getId());
     }
 
     public MealTo create(int authUserId, int caloriesPerDay, Meal meal) {
         log.debug("auth={}, cals={}, meal={}", authUserId, caloriesPerDay, meal);
-
         Meal newMeal = repository.save(authUserId, meal);
         if (newMeal == null) throw new NotFoundException("not accessible or not found with user id="+ authUserId);
 
-        List<MealTo> mealsByUser = getAll(authUserId, caloriesPerDay); // как то неправильно два раза обращаться :\
-
-
+        List<MealTo> mealsByUser = getAll(authUserId, caloriesPerDay);
         return mealsByUser.stream().filter(m -> Objects.equals(m.getId(), newMeal.getId())).findAny().orElse(null);
     }
 
-    public void delete(int authUserId, int caloriesPerDay, int id) {
+    public void delete(int authUserId, int id) {
         checkNotFoundWithId(repository.delete(authUserId, id), id);
     }
 

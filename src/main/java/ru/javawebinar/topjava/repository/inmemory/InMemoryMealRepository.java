@@ -42,7 +42,6 @@ public class InMemoryMealRepository implements MealRepository {
             return editMeal;
         }
         // handle case: update, but not present in storage
-
         log.debug("meal already exist");
 
         Meal oldMeal = repository.get(editMeal.getId());
@@ -52,36 +51,26 @@ public class InMemoryMealRepository implements MealRepository {
         }
 
         editMeal.setUserId(oldMeal.getUserId());
-
         repository.put(oldMeal.getId(), editMeal);
         return editMeal;
     }
 
     @Override
-    public Collection<Meal> getAllByUserId(int userId) {
-        Collection<Meal> result = MealsUtil.getAllById(new ArrayList<>(repository.values()), userId,
+    public Collection<Meal> getAll(int userId) {
+        return MealsUtil.getAllById(new ArrayList<>(repository.values()), userId,
                 Comparator.comparing(Meal::getDateTime).reversed());
-
-        return result;
     }
 
     @Override
     public Meal get( int userId, int id) {
         Meal meal = repository.get(id);
-
         return meal.getUserId() == userId ? meal : null;
     }
 
     @Override
     public boolean delete( int userId, int id) {
         Meal meal = repository.get(id);
-
         return meal.getUserId() == userId && repository.remove(id) != null;
-    }
-
-    @Override
-    public Collection<Meal> getAll() {
-        return repository.values();
     }
 }
 
