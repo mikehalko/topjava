@@ -1,17 +1,19 @@
 package ru.javawebinar.topjava.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class MealsUtil {
+    private static final Logger log = LoggerFactory.getLogger(MealsUtil.class);
     public static final int DEFAULT_CALORIES_PER_DAY = 2000;
 
     public static final List<Meal> meals = Arrays.asList(
@@ -25,19 +27,30 @@ public class MealsUtil {
     );
 
     public static List<MealTo> getTos(Collection<Meal> meals, int caloriesPerDay) {
+        log.debug("getTos");
         return filterByPredicate(meals, caloriesPerDay, meal -> true);
     }
 
-    public static List<MealTo> getFilteredTos(Collection<Meal> meals, int caloriesPerDay, LocalTime startTime, LocalTime endTime) {
-        return filterByPredicate(meals, caloriesPerDay, meal -> DateTimeUtil.isBetweenHalfOpen(meal.getTime(), startTime, endTime));
+    public static List<MealTo> getFilteredTos(Collection<Meal> meals, int caloriesPerDay, final DateTimeFilter filter) {
+        Predicate<Meal> predicate = meal -> true;
+        if (filter.hasDates() && filter.hasTimes()) {
+            predicate = meal -> filter.mealBetweenDates(meal) && filter.mealBetweenTimes(meal);
+        } else {
+            predicate = filter.hasDates() ? filter::mealBetweenDates
+                    : filter.hasTimes() ? filter::mealBetweenTimes : predicate;
+        }
+        return filterByPredicate(meals, caloriesPerDay, predicate);
     }
 
     private static List<MealTo> filterByPredicate(Collection<Meal> meals, int caloriesPerDay, Predicate<Meal> filter) {
+        log.debug("filterByPredicate, caloriesPerDay={}", caloriesPerDay);
         Map<LocalDate, Integer> caloriesSumByDate = meals.stream()
                 .collect(
                         Collectors.groupingBy(Meal::getDate, Collectors.summingInt(Meal::getCalories))
 //                      Collectors.toMap(Meal::getDate, Meal::getCalories, Integer::sum)
                 );
+
+        log.debug("caloriesSumByDate={}", caloriesSumByDate.toString());
 
         return meals.stream()
                 .filter(filter)
@@ -47,9 +60,5 @@ public class MealsUtil {
 
     private static MealTo createTo(Meal meal, boolean excess) {
         return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
-    }
-
-    public static Meal convertDTO(MealTo meal) {
-        return new Meal(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories());
     }
 }

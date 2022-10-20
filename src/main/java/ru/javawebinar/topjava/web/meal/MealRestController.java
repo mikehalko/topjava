@@ -7,8 +7,10 @@ import org.springframework.stereotype.Controller;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.DateTimeFilter;
 
 import java.util.List;
+import java.util.logging.Filter;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
@@ -27,9 +29,10 @@ public class MealRestController {
     }
 
 
-    public List<MealTo> getAll() {
+    public List<MealTo> getAll(DateTimeFilter filter) {
         log.info("getAll");
-        return service.getAll(authUserId(), authUserCaloriesPerDay());
+        log.debug("filter={}", filter);
+        return service.getAll(authUserId(), authUserCaloriesPerDay(), filter);
     }
 
 

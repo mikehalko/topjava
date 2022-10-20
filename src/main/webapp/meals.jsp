@@ -50,5 +50,20 @@
         </c:forEach>
     </table>
 </section>
+
+<hr>
+<!-- ТУТ ФОРМА С ФИЛЬТРАЦИЕЙ -->
+<form action="meals" method="get">
+    <jsp:useBean id="filter" type="ru.javawebinar.topjava.util.DateTimeFilter" scope="request"/>
+    <label for="start">от</label>
+    <input id="start" type="date" name="dateStart" value=${filter.hasDates() ? filter.dateStart.toString() : ''}>
+    <input type="time" name="timeStart" value=${filter.hasTimes() ? filter.timeStart.toString() : ''}>
+    <br>
+    <label for="end">до</label>
+    <input id="end" type="date" name="dateEnd" value=${filter.hasDates() ? filter.dateEnd.toString() : ''}>
+    <input type="time" name="timeEnd" value=${filter.hasTimes() ? filter.timeEnd.toString() : ''}>
+    <br>
+    <input type="submit" value="filter">
+</form>
 </body>
 </html>

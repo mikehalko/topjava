@@ -22,7 +22,8 @@ public class InMemoryMealRepository implements MealRepository {
     private final Map<Integer, Meal> repository = new ConcurrentHashMap<>();
     private final AtomicInteger counter = new AtomicInteger(0);
 
-    {
+    public InMemoryMealRepository() {
+        log.debug("hardcode initialization");
         MealsUtil.meals.forEach(meal -> save(SecurityUtil.authUserId(), meal));
         save(2, new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0),
                 "Завтрак", 500));
@@ -57,9 +58,12 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public Collection<Meal> getAll(int userId) {
-        return filteredByUserId(new ArrayList<>(repository.values()), userId,
+    public List<Meal> getAll(int userId) {
+        log.info("getAll");
+        List<Meal> result = filteredByUserId(repository.values(), userId,
                 Comparator.comparing(Meal::getDateTime).reversed());
+        log.debug("result={}", result);
+        return result;
     }
 
     @Override
@@ -75,11 +79,15 @@ public class InMemoryMealRepository implements MealRepository {
                 && repository.remove(id) != null;
     }
 
-    private static List<Meal> filteredByUserId(List<Meal> mealList, int id, Comparator<Meal> comparator) {
-        return mealList.stream()
-                .filter(meal -> meal.getUserId().equals(id))
+    private static List<Meal> filteredByUserId(Collection<Meal> mealList, int userId, Comparator<Meal> comparator) {
+        log.debug("filteredByUserId");
+        log.debug("mealList={}, userId={}", mealList, userId);
+        List<Meal> result = mealList.stream()
+                .filter(meal -> meal.getUserId().equals(userId))
                 .sorted(comparator)
                 .collect(Collectors.toList());
+        log.debug("result={}", result);
+        return result;
     }
 }
 

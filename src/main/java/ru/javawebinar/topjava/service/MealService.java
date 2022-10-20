@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.DateTimeFilter;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import java.util.List;
@@ -23,8 +24,11 @@ public class MealService {
         this.repository = repository;
     }
 
-    public List<MealTo> getAll(int userId, int caloriesPerDay) {
-        return MealsUtil.getTos(repository.getAll(userId), caloriesPerDay);
+    public List<MealTo> getAll(int userId, int caloriesPerDay, DateTimeFilter filter) {
+        log.debug("userId={}. caloriesPerDay={}, filter={}", userId, caloriesPerDay, filter);
+        List<MealTo> result = MealsUtil.getFilteredTos(repository.getAll(userId), caloriesPerDay, filter);
+        log.debug("result={}", result);
+        return result;
     }
 
     public Meal get(int userId, int id) {
