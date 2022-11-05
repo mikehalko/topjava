@@ -1,5 +1,7 @@
 package ru.javawebinar.topjava.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -15,11 +17,13 @@ import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 
 @Service
 public class MealService {
+    private static final Logger log = LoggerFactory.getLogger(MealService.class);
 
     private final MealRepository repository;
 
     public MealService(MealRepository repository) {
         this.repository = repository;
+        log.debug("repository class = {}", repository.getClass().getSimpleName());
     }
 
     public Meal get(int id, int userId) {
@@ -46,10 +50,5 @@ public class MealService {
     public Meal create(Meal meal, int userId) {
         Assert.notNull(meal, "meal must not be null");
         return repository.save(meal, userId);
-    }
-
-    // TODO убрать
-    MealRepository repository() {
-        return repository;
     }
 }
