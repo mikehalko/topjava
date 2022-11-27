@@ -50,10 +50,10 @@
 
         <bean id="dataSource"
               class="org.apache.tomcat.jdbc.pool.DataSource"
-              p:driverClassName="${database.driverClassName}"
-              p:url="${database.url}"
-              p:username="${database.username}"
-              p:password="${database.password}"/>
+              p:driverClassName="org.postgresql.Driver"
+              p:url="jdbc:postgresql://localhost:5432/postgres"
+              p:username="postgres"
+              p:password="1111"/>
     </beans>
 
     <beans profile="jdbc">
